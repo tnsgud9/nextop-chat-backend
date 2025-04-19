@@ -1,0 +1,24 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0", // VS Code 디버깅 설정 파일 버전
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch", // 새 프로세스 시작
+      "name": "Launch NestJS", // 디버깅 이름
+      "runtimeExecutable": "npm", // npm 실행
+      "runtimeArgs": ["run", "start"], // npm 스크립트 실행
+      "autoAttachChildProcesses": true // 자식 프로세스 자동 연결
+    },
+    {
+      "type": "node", // Node.js 디버깅
+      "request": "launch", // 새 프로세스 시작
+      "name": "Debug NestJS", // 디버깅 이름
+      "runtimeExecutable": "npm", // npm 실행
+      "runtimeArgs": ["run", "start:debug"], // npm 스크립트 실행
+      "autoAttachChildProcesses": true // 자식 프로세스 자동 연결
+    }
+  ]
+}
