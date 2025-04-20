@@ -58,3 +58,102 @@ export const decryptAES = (password: string, encryptedData: string): string => {
   const decrypted = decipher.update(encrypted); // Buffer 사용
   return Buffer.concat([decrypted, decipher.final()]).toString('utf8');
 };
+// RSA 암호화 함수: 공개키를 사용하여 데이터를 암호화
+export const encryptRSA = (publicKey: string, data: string): string => {
+  const buffer = Buffer.from(data, 'utf-8');
+  const encrypted = crypto.publicEncrypt(publicKey, buffer);
+  return encrypted.toString('base64'); // Base64로 인코딩하여 반환
+};
+
+// RSA 복호화 함수: 개인키를 사용하여 암호화된 데이터를 복호화
+export const decryptRSA = (
+  privateKey: string,
+  encryptedData: string,
+): string => {
+  const buffer = Buffer.from(encryptedData, 'base64');
+  const decrypted = crypto.privateDecrypt(privateKey, buffer);
+  return decrypted.toString('utf-8');
+};
+
+// RSA 서명 생성 함수: 개인키를 사용하여 메시지 서명
+export const signRSA = (privateKey: string, data: string): string => {
+  const signer = crypto.createSign('SHA256');
+  signer.update(data);
+  signer.end();
+  const signature = signer.sign(privateKey, 'base64');
+  return signature;
+};
+
+// RSA 서명 유효성 검증 함수: 공개키를 사용하여 서명이 유효한지 검증
+export const verifyRSASignature = (
+  publicKey: string,
+  data: string,
+  signature: string,
+): boolean => {
+  const verifier = crypto.createVerify('SHA256');
+  verifier.update(data);
+  verifier.end();
+  return verifier.verify(publicKey, signature, 'base64');
+};
+
+// RSA + AES 하이브리드 암호화
+export const hybridEncrypt = (
+  rsaPublicKey: string,
+  plaintext: string,
+): string => {
+  const aesKey = crypto.randomBytes(32); // AES 256-bit key
+  const iv = crypto.randomBytes(16); // 128-bit IV
+  const algorithm = 'aes-256-cbc';
+
+  const cipher = crypto.createCipheriv(algorithm, aesKey, iv);
+  let encrypted = cipher.update(plaintext, 'utf8', 'base64');
+  encrypted += cipher.final('base64');
+
+  const encryptedKey = crypto.publicEncrypt(
+    {
+      key: rsaPublicKey,
+      padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+      oaepHash: 'sha256',
+    },
+    aesKey,
+  );
+
+  const payload = {
+    iv: iv.toString('base64'),
+    ciphertext: encrypted,
+    encryptedKey: encryptedKey.toString('base64'),
+  };
+
+  return Buffer.from(JSON.stringify(payload), 'utf8').toString('base64');
+};
+
+// RSA + AES 하이브리드 복호화
+export const hybridDecrypt = (
+  rsaPrivateKey: string,
+  encryptedPayload: string,
+): string => {
+  const algorithm = 'aes-256-cbc';
+
+  const decoded = Buffer.from(encryptedPayload, 'base64').toString('utf8');
+  const { iv, ciphertext, encryptedKey } = JSON.parse(decoded);
+
+  const aesKey = crypto.privateDecrypt(
+    {
+      key: rsaPrivateKey,
+      padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+      oaepHash: 'sha256',
+    },
+    Buffer.from(encryptedKey, 'base64'),
+  );
+
+  const decipher = crypto.createDecipheriv(
+    algorithm,
+    aesKey,
+    Buffer.from(iv, 'base64'),
+  );
+
+  const decrypted =
+    decipher.update(ciphertext, 'base64', 'utf8') + decipher.final('utf8');
+
+  return decrypted;
+};

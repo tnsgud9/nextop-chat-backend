@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Auth, AuthDocument } from '../database/schema/auth.schema';
 import { AccessTokenPayload } from '../common/types/jwt.type';
 import { ConfigService } from 'src/config/config.service';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { Schemas } from 'src/database/schema';
@@ -80,5 +80,27 @@ export class AuthService {
     return await this.jwtService.signAsync(payload, {
       secret: this.configService.config.SECRET_TOKEN,
     });
+  }
+
+  public tryVerifyAccessToken(token: string): AccessTokenPayload | null {
+    try {
+      // 토큰 검증
+      const payload = this.jwtService.verify<AccessTokenPayload>(token, {
+        secret: this.configService.config.SECRET_TOKEN,
+        ignoreExpiration: false, // 만료된 토큰을 무시하지 않음
+      });
+      return payload;
+    } catch {
+      // 유효하지 않은 토큰일 경우 null 반환
+      return null;
+    }
+  }
+
+  public async getAuthInfo(id: Types.ObjectId) {
+    return await this.authModel.findOne(id).exec();
+  }
+
+  public async getAuthInfos(ids: Types.ObjectId[]) {
+    return await this.authModel.find({ _id: ids }).exec();
   }
 }
