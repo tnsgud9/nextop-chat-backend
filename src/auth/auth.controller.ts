@@ -41,7 +41,7 @@ export class AuthController {
 
     res.cookie('access_token', accessToken, {
       httpOnly: true, // XSS 공격 방지
-      secure: true, // HTTPS 환경에서만 전송 (개발 환경에서는 false 가능)
+      // secure: true, // HTTPS 환경에서만 전송 (개발 환경에서는 false 가능)
       sameSite: 'strict', // CSRF 방지
     });
 
