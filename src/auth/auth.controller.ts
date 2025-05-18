@@ -40,9 +40,9 @@ export class AuthController {
     });
 
     res.cookie('access_token', accessToken, {
-      httpOnly: true, // XSS 공격 방지
+      // httpOnly: true, // XSS 공격 방지
       // secure: true, // HTTPS 환경에서만 전송 (개발 환경에서는 false 가능)
-      sameSite: 'strict', // CSRF 방지
+      // sameSite: 'strict', // CSRF 방지
     });
 
     return {
@@ -78,12 +78,6 @@ export class AuthController {
     const accessToken = await this.authService.createAccessToken({
       id: newUser.id,
       nickname: newUser.nickname,
-    });
-
-    res.cookie('access_token', accessToken, {
-      httpOnly: true, // XSS 공격 방지
-      secure: true, // HTTPS 환경에서만 전송 (개발 환경에서는 false 가능)
-      sameSite: 'strict', // CSRF 방지
     });
 
     return {
