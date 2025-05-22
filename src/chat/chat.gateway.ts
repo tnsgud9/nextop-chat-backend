@@ -17,7 +17,7 @@ import { AuthService } from 'src/auth/auth.service';
 
 @WebSocketGateway({
   cors: {
-    origin: '*', // 프론트엔드 주소
+    origin: 'http://localhost:5173', // 프론트엔드 주소
     credentials: true, // 쿠키를 허용하려면 반드시 true
   },
 })
@@ -93,17 +93,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       `[Client:${client.id}] [Nickname:${payload.nickname}] 메시지 수신: ${content}`,
     );
     const token = client.data as AccessTokenPayload;
-    await this.chatService.createMessage(
+    const message = await this.chatService.createMessage(
       new Types.ObjectId(token.id),
       new Types.ObjectId(room as string),
       content,
       contentType,
     );
     // 해당 방에 있는 다른 Client들에게만 메시지를 보냄 (보낸 사람 제외)
-    client.to(room as string).emit('message', {
-      sender: new Types.ObjectId(token.id),
-      content: content,
-      contentType: contentType,
-    } as unknown as MessageDto);
+    client.to(room as string).emit('message', new MessageDto(message));
   }
 }
