@@ -12,7 +12,7 @@ export class UserService {
   public async getAccountInfosByNickname(nickname: string) {
     return this.authModel
       .find({
-        name: { $regex: nickname, $options: 'i' }, // name 필드만 검색
+        nickname: { $regex: nickname, $options: 'i' }, // name 필드만 검색
       })
       .exec();
   }
