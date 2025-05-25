@@ -86,20 +86,20 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async handleMessage(
     @MessageBody() { content, contentType }: ChatRoomSendMessageRequestDto,
     @ConnectedSocket() client: Socket,
-  ): Promise<void> {
+  ): Promise<MessageDto> {
     const { room } = client.handshake.query;
     const payload = client.data as AccessTokenPayload;
     console.log(
       `[Client:${client.id}] [Nickname:${payload.nickname}] 메시지 수신: ${content}`,
     );
-    const token = client.data as AccessTokenPayload;
     const message = await this.chatService.createMessage(
-      new Types.ObjectId(token.id),
+      new Types.ObjectId(payload.id),
       new Types.ObjectId(room as string),
       content,
       contentType,
     );
-    // 해당 방에 있는 다른 Client들에게만 메시지를 보냄 (보낸 사람 제외)
-    client.to(room as string).emit('message', new MessageDto(message));
+    // 해당 방에 있는 다른 Client들 에게만 메시지를 보냄 (보낸 사람 제외)
+    client.to(room as string).emit('message', message);
+    return new MessageDto(message);
   }
 }
